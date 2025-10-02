@@ -52,3 +52,20 @@ NO
 
 Напишите **полную программу**, читающую из `std::cin` и пишущую в `std::cout`.  
 Используйте `std::set` или `std::unordered_set` для эффективного отслеживания уже встреченных чисел.
+## Решение
+
+main.cpp
+```cpp
+#include <iostream>
+#include <unordered_set>
+
+int main() {
+    int n;
+    std::unordered_set<int> sequence;
+    while (std::cin >> n) {
+        const auto & [iter, has_insert] = sequence.insert(n);
+        std::cout << (has_insert ? "NO" : "YES") << '\n';
+    }
+    return 0;
+}
+```

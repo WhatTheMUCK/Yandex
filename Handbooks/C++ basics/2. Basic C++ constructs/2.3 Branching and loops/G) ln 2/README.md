@@ -74,3 +74,22 @@ $ 1 - \frac{1}{2} + \frac{1}{3} - \frac{1}{4} + \ldots + \frac{(-1)^{n+1}}{n} $
 
 Используйте тип `double` для работы с числами с плавающей точкой.  
 Используйте стандартную точность вывода (по умолчанию — 6 знаков после запятой).
+## Решение
+
+main.cpp
+```cpp
+#include <iostream>
+
+int main() {
+    int n;
+    std::cin >> n;
+    double sum = 0;
+    double sign = 1;
+    for (int i = 1; i <= n; ++i) {
+        sum += sign / i;
+        sign *= -1;
+    }
+    std::cout << sum << '\n';
+    return 0;
+}
+```

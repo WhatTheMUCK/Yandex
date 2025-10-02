@@ -42,3 +42,31 @@ std::optional<Result> DoWithRetry(std::function<Result()> func,
 - Гарантируется, что функция `Sleep(int)` объявлена и доступна (не нужно её реализовывать).
 - Исключения **других типов** (не `Exception`) должны **пробрасываться немедленно**, без повторных попыток.
 - Про `std::optional` можно прочитать в [официальной документации](https://en.cppreference.com/w/cpp/utility/optional).
+## Решение
+
+main.cpp
+```cpp
+#include <exception>
+#include <functional>
+#include <optional>
+
+template <typename Result, typename Exception = std::exception>
+std::optional<Result> DoWithRetry(std::function<Result()> func,
+                                  int retryCount, int sleepTime, bool throwLast) 
+{
+    for (int i = 0; i < retryCount + 1; ++i) {
+        try {
+            return func();
+        } catch (const Exception & e) {
+            if (i == retryCount) {
+                if (throwLast) {
+                    throw e;
+                } 
+            } else {
+                Sleep(sleepTime);
+            }
+        }
+    }
+    return {};
+}
+```

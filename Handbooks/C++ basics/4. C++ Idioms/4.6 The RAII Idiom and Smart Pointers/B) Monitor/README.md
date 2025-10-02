@@ -134,3 +134,117 @@ public:
 **Примечание**
 
 В вашей программе не должно быть функции `main`. Сдайте в систему только код класса `Monitor`. Подключите необходимые заголовочные файлы. Класс `ParticipantResults` подключать или объявлять не нужно: мы его подключим сами. Напоминаем, что обычный указатель можно всегда передать туда, где ожидается указатель на константу, но не наоборот.
+## Решение
+
+monitor.h
+```cpp
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+class Monitor {
+private:
+    // удобные псевдонимы типов для краткости:
+    using Ptr = ParticipantResults*;
+    using ConstPtr = const ParticipantResults*;
+
+    std::map<std::string, Ptr> byParticipant;
+    std::map<std::string, std::vector<ConstPtr>> byTeam;
+    std::vector<ConstPtr> allResults;
+
+public:
+    Monitor() = default;
+    Monitor(const Monitor&) = delete;
+    Monitor& operator=(const Monitor&) = delete;
+
+    Ptr RegisterParticipant(const std::string& login, const std::string& team) {
+        if (byParticipant.contains(login)) {
+            throw std::invalid_argument("Participant is already registered");
+        }
+        // Добавить новую запись об участнике и вернуть её
+        byParticipant[login] = new ParticipantResults(login, team);
+        byTeam[team].push_back(byParticipant[login]);
+        allResults.push_back(byParticipant[login]);
+        return byParticipant[login];
+    }
+
+    Ptr GetParticipantResults(const std::string& login) {
+        return byParticipant.at(login);
+    }
+
+    ConstPtr GetParticipantResults(const std::string& login) const {
+        return byParticipant.at(login);
+    }
+
+    std::vector<ConstPtr> GetTeamResults(const std::string& team) const {
+        return byTeam.at(team);
+    }
+
+    std::vector<ConstPtr> GetAllResults() const {
+        return allResults;
+    }
+
+    ~Monitor() {
+        for (auto ptr : allResults) {
+            delete ptr;
+        }
+    }
+};
+```
+
+participant_results.h
+```cpp
+#include <map>
+#include <string>
+
+struct ParticipantResults {
+    std::string login;
+    std::string team;
+    std::map<std::string, int> scores;  // номер задачи -> баллы
+
+    // ...
+
+    ParticipantResults(const std::string& l, const std::string& te): login(l), team(te) {
+    }
+
+    ParticipantResults(const ParticipantResults&) = delete;
+    ParticipantResults& operator = (const ParticipantResults&) = delete;
+};
+
+```
+
+main.cpp
+```cpp
+#include "participant_results.h"
+#include "monitor.h"
+
+#include <iostream>
+
+int main() {
+    Monitor monitor;
+    {
+        auto ptr = monitor.RegisterParticipant("Ivanov Ivan", "201-1");
+        ptr->scores["A"] = 10;
+        ptr->scores["B"] = 8;
+    }
+
+    {
+        auto ptr = monitor.RegisterParticipant("Petrov Petr", "201-2");
+        ptr->scores["A"] = 5;
+        ptr->scores["C"] = 10;
+    }
+
+    auto ptr = monitor.GetParticipantResults("Ivanov Ivan");
+    ptr->scores["Q"] = 100;
+
+    // тут может быть аналогичный вызов monitor.GetTeamResults(team)
+    for (const auto& result : monitor.GetAllResults()) {
+        std::cout << result->login << "\t" << result->team << "\t";
+        for (const auto& [problemId, score] : result->scores) {
+            std::cout << problemId << ": " << score << "\t";
+        }
+        std::cout << "\n";
+    }
+}
+```

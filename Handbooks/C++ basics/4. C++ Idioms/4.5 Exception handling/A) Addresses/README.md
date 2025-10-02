@@ -62,3 +62,46 @@ int main() {
 ### Примечание
 
 Вам нужно исправить ошибки в коде и сдать его в систему. Код структуры Address и функций переписывать не надо: просто подключите в своей программе заголовочный файл address.h. Утечек памяти в вашей программе быть не должно.
+## Решение
+
+address.h
+```cpp
+#pragma once
+
+#include <string>
+
+struct Address {
+    std::string Country;
+    std::string City;
+    std::string Street;
+    std::string House;
+};
+
+void Parse(const std::string& line, Address* const address);
+void Unify(Address* const address);
+std::string Format(const Address& address);
+
+
+```
+
+main.cpp
+```cpp
+#include "address.h"
+#include <iostream>
+#include <string>
+
+int main() {
+    std::string line;
+    while (getline(std::cin, line)) {
+        Address* address = new Address;
+        try {
+            Parse(line, address);
+            Unify(address);
+            std::cout << Format(*address) << "\n";
+        } catch(...) {
+            std::cout << "exception\n";
+        }
+        delete address;
+    }
+}
+```
